@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\LegalDocumentAISearch.Domain\LegalDocumentAISearch.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
