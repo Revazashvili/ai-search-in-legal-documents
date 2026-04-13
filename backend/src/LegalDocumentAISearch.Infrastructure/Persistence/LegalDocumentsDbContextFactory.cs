@@ -3,17 +3,17 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace LegalDocumentAISearch.Infrastructure.Persistence;
 
-public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+public class LegalDocumentsDbContextFactory : IDesignTimeDbContextFactory<LegalDocumentsDbContext>
 {
-    public ApplicationDbContext CreateDbContext(string[] args)
+    public LegalDocumentsDbContext CreateDbContext(string[] args)
     {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var options = new DbContextOptionsBuilder<LegalDocumentsDbContext>()
             .UseNpgsql(
                 "Host=localhost;Port=5432;Database=legaldocumentaisearch;Username=postgres;Password=postgres",
-                o => o.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)
+                o => o.MigrationsAssembly(typeof(LegalDocumentsDbContext).Assembly.FullName)
                        .MigrationsHistoryTable("__EFMigrationsHistory"))
             .Options;
 
-        return new ApplicationDbContext(options);
+        return new LegalDocumentsDbContext(options);
     }
 }
