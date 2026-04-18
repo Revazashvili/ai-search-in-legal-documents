@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration);
+
 var allowedOrigins = builder.Configuration.GetRequiredSection("Cors:AllowedOrigins").Get<string[]>()!;
 
 builder.Services.AddCors(options =>
@@ -23,6 +24,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapAdminEndpoints();
 app.MapUserEndpoints();

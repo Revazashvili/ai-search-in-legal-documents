@@ -6,8 +6,7 @@ public static class UserEndpoints
     {
         var group = app.MapGroup("/api");
 
-        // Register user-facing endpoint groups here
-        // e.g. group.MapSearchEndpoints();
+        group.MapSearchEndpoints();
 
         return app;
     }

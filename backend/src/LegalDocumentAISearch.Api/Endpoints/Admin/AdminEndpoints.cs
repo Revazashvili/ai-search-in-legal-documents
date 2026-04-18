@@ -7,6 +7,7 @@ public static class AdminEndpoints
         var group = app.MapGroup("/api/admin");
 
         group.MapAuthAdminEndpoints();
+        group.MapDocumentAdminEndpoints();
 
         return app;
     }

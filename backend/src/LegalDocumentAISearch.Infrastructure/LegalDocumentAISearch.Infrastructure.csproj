@@ -8,6 +8,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Pgvector.EntityFrameworkCore" />
+    <PackageReference Include="OpenAI" />
+    <PackageReference Include="PdfPig" />
+    <PackageReference Include="SharpToken" />
   </ItemGroup>
 
   <ItemGroup>
