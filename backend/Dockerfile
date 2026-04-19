@@ -9,13 +9,14 @@ COPY src/LegalDocumentAISearch.Infrastructure/LegalDocumentAISearch.Infrastructu
 COPY src/LegalDocumentAISearch.Api/LegalDocumentAISearch.Api.csproj                       src/LegalDocumentAISearch.Api/
 COPY tests/LegalDocumentAISearch.UnitTests/LegalDocumentAISearch.UnitTests.csproj         tests/LegalDocumentAISearch.UnitTests/
 
-RUN dotnet restore
+RUN --mount=type=cache,target=/root/.nuget/packages dotnet restore
 
 COPY . .
-RUN dotnet publish src/LegalDocumentAISearch.Api/LegalDocumentAISearch.Api.csproj \
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet publish src/LegalDocumentAISearch.Api/LegalDocumentAISearch.Api.csproj \
     -c Release -o /app/publish --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 8080
