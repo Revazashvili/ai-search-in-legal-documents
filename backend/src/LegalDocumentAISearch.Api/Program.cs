@@ -40,3 +40,5 @@ app.MapAdminEndpoints();
 app.MapUserEndpoints();
 
 app.Run();
+
+public partial class Program { }
