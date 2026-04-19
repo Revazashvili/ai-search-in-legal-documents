@@ -45,7 +45,7 @@ public class LegalDocumentsDbContext(DbContextOptions<LegalDocumentsDbContext> o
             b.Property(c => c.ChunkType).HasMaxLength(20).HasDefaultValue("Chunk");
 
             b.Property(c => c.Embedding)
-                .HasColumnType("vector(1536)")
+                .HasColumnType("vector(768)")
                 .HasConversion(floatArrayToVector);
 
             b.HasOne(c => c.Document)

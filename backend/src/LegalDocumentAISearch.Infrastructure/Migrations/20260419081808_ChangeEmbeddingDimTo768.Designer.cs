@@ -3,6 +3,7 @@ using System;
 using LegalDocumentAISearch.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace LegalDocumentAISearch.Infrastructure.Migrations
 {
     [DbContext(typeof(LegalDocumentsDbContext))]
-    partial class LegalDocumentsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260419081808_ChangeEmbeddingDimTo768")]
+    partial class ChangeEmbeddingDimTo768
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -33,11 +33,16 @@ public static class DependencyInjection
         services.AddIdentityApiEndpoints<AdminUser>()
             .AddEntityFrameworkStores<LegalDocumentsDbContext>();
 
-        // OpenAI client (singleton — thread-safe, expensive to create)
+        // OpenAI-compatible client — works with OpenAI or any compatible endpoint (e.g. Ollama)
         services.AddSingleton(sp =>
         {
-            var apiKey = configuration["OpenAI:ApiKey"]
-                ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured.");
+            var apiKey = configuration["OpenAI:ApiKey"] ?? "ollama";
+            var baseUrl = configuration["OpenAI:BaseUrl"];
+            if (!string.IsNullOrEmpty(baseUrl))
+            {
+                var options = new OpenAIClientOptions { Endpoint = new Uri(baseUrl) };
+                return new OpenAIClient(new System.ClientModel.ApiKeyCredential(apiKey), options);
+            }
             return new OpenAIClient(apiKey);
         });
 

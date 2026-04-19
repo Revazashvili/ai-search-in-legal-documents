@@ -25,9 +25,9 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=legaldocumentaisearch;Username=postgres;Password=postgres"
       Cors__AllowedOrigins__0: "http://localhost:3000"
-      OpenAI__ApiKey: ${OPENAI_API_KEY:-YOUR_OPENAI_API_KEY_HERE}
-      OpenAI__EmbeddingModel: text-embedding-3-small
-      OpenAI__ChatModel: gpt-4o
+      OpenAI__BaseUrl: http://host.docker.internal:11434/v1
+      OpenAI__EmbeddingModel: nomic-embed-text
+      OpenAI__ChatModel: llama3.1:8b
     depends_on:
       postgres:
         condition: service_healthy
