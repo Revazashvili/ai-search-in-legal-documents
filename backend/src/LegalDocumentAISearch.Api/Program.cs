@@ -1,6 +1,8 @@
 using LegalDocumentAISearch.Api.Endpoints.Admin;
 using LegalDocumentAISearch.Api.Endpoints.User;
 using LegalDocumentAISearch.Infrastructure;
+using LegalDocumentAISearch.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +18,12 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader().AllowCredentials()));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<LegalDocumentsDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {

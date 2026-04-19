@@ -42,8 +42,16 @@ npm run lint
 ### Infrastructure
 
 ```bash
-docker compose up -d   # starts pgvector/pgvector:pg16 on port 5432
+docker compose up --build   # rebuild all images and start postgres + backend + frontend
 ```
+
+Set `OPENAI_API_KEY` env var before starting (or it uses a placeholder):
+```bash
+export OPENAI_API_KEY=sk-...
+docker compose up --build
+```
+
+EF migrations run automatically on backend startup via `MigrateAsync()`.
 
 ## Configuration
 

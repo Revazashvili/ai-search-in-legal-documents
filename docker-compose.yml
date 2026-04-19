@@ -9,6 +9,39 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5081:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=legaldocumentaisearch;Username=postgres;Password=postgres"
+      Cors__AllowedOrigins__0: "http://localhost:3000"
+      OpenAI__ApiKey: ${OPENAI_API_KEY:-YOUR_OPENAI_API_KEY_HERE}
+      OpenAI__EmbeddingModel: text-embedding-3-small
+      OpenAI__ChatModel: gpt-4o
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend/admin
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:5081
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
