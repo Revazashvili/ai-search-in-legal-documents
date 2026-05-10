@@ -73,6 +73,7 @@ public class DocumentRepository(LegalDocumentsDbContext db) : IDocumentRepositor
                     c.ChunkType,
                     c.ArticleNumber,
                     c.ChunkIndex,
+                    c.ChunkText,
                     c.TokenCount,
                     c.Embedding != null)).ToList()))
             .FirstOrDefaultAsync(ct);

@@ -31,6 +31,7 @@ export interface ChunkSummary {
   chunkType: string;
   articleNumber: string | null;
   chunkIndex: number;
+  chunkText: string;
   tokenCount: number;
   hasEmbedding: boolean;
 }

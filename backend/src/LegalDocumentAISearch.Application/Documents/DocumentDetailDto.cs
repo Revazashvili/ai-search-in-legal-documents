@@ -20,5 +20,6 @@ public record ChunkSummaryDto(
     string ChunkType,
     string? ArticleNumber,
     int ChunkIndex,
+    string ChunkText,
     int TokenCount,
     bool HasEmbedding);

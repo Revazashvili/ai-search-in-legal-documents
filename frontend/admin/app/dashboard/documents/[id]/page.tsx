@@ -191,7 +191,7 @@ export default function DocumentDetailPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {["#", "Type", "Article", "Tokens", "Embedded"].map((h) => (
+                  {["#", "Type", "Article", "Content", "Tokens", "Embedded"].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-medium text-muted-foreground"
@@ -213,6 +213,11 @@ export default function DocumentDetailPage() {
                     <td className="px-4 py-2.5">{chunk.chunkType}</td>
                     <td className="px-4 py-2.5 text-muted-foreground">
                       {chunk.articleNumber ?? "—"}
+                    </td>
+                    <td className="px-4 py-2.5 text-muted-foreground max-w-xs">
+                      <p className="line-clamp-2 text-xs" title={chunk.chunkText}>
+                        {chunk.chunkText}
+                      </p>
                     </td>
                     <td className="px-4 py-2.5 text-muted-foreground">
                       {chunk.tokenCount}

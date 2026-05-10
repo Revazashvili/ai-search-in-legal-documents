@@ -11,18 +11,23 @@ public class SearchRepository(LegalDocumentsDbContext db) : ISearchRepository
     public Task<List<SearchResultDto>> KeywordSearchAsync(string query, int limit, CancellationToken ct = default) =>
         db.Database.SqlQuery<SearchResultDto>(
             $"""
-            SELECT c."Id" AS "ChunkId",
-                   c."DocumentId",
-                   d."Title" AS "DocumentTitle",
-                   c."ArticleNumber",
-                   c."ChunkText",
-                   CAST(ts_rank(to_tsvector('simple', c."ChunkText"), plainto_tsquery('simple', {query})) AS double precision) AS "Score",
-                   c."ParentChunkId"
-            FROM "DocumentChunks" c
-            JOIN "Documents" d ON c."DocumentId" = d."Id"
-            WHERE d."Status" = 'Ready'
-              AND to_tsvector('simple', c."ChunkText") @@ plainto_tsquery('simple', {query})
-            ORDER BY "Score" DESC
+            SELECT r."ChunkId", r."DocumentId", r."DocumentTitle", r."ArticleNumber", r."ChunkText", r."Score", r."ParentChunkId"
+            FROM (
+                SELECT DISTINCT ON (c."DocumentId", c."ArticleNumber")
+                       c."Id" AS "ChunkId",
+                       c."DocumentId",
+                       d."Title" AS "DocumentTitle",
+                       c."ArticleNumber",
+                       c."ChunkText",
+                       CAST(ts_rank(to_tsvector('simple', c."ChunkText") || to_tsvector('simple', d."Title"), plainto_tsquery('simple', {query})) AS double precision) AS "Score",
+                       c."ParentChunkId"
+                FROM "DocumentChunks" c
+                JOIN "Documents" d ON c."DocumentId" = d."Id"
+                WHERE d."Status" = 'Ready'
+                  AND (to_tsvector('simple', c."ChunkText") || to_tsvector('simple', d."Title")) @@ plainto_tsquery('simple', {query})
+                ORDER BY c."DocumentId", c."ArticleNumber", "Score" DESC
+            ) r
+            ORDER BY r."Score" DESC
             LIMIT {limit}
             """)
         .ToListAsync(ct);
@@ -31,18 +36,23 @@ public class SearchRepository(LegalDocumentsDbContext db) : ISearchRepository
     {
         var vectorLiteral = $"[{string.Join(",", queryEmbedding)}]";
         var sql = $"""
-            SELECT c."Id" AS "ChunkId",
-                   c."DocumentId",
-                   d."Title" AS "DocumentTitle",
-                   c."ArticleNumber",
-                   c."ChunkText",
-                   CAST(1 - (c."Embedding" <=> '{vectorLiteral}'::vector) AS double precision) AS "Score",
-                   c."ParentChunkId"
-            FROM "DocumentChunks" c
-            JOIN "Documents" d ON c."DocumentId" = d."Id"
-            WHERE d."Status" = 'Ready'
-              AND c."Embedding" IS NOT NULL
-            ORDER BY c."Embedding" <=> '{vectorLiteral}'::vector
+            SELECT r."ChunkId", r."DocumentId", r."DocumentTitle", r."ArticleNumber", r."ChunkText", r."Score", r."ParentChunkId"
+            FROM (
+                SELECT DISTINCT ON (c."DocumentId", c."ArticleNumber")
+                       c."Id" AS "ChunkId",
+                       c."DocumentId",
+                       d."Title" AS "DocumentTitle",
+                       c."ArticleNumber",
+                       c."ChunkText",
+                       CAST(1 - (c."Embedding" <=> '{vectorLiteral}'::vector) AS double precision) AS "Score",
+                       c."ParentChunkId"
+                FROM "DocumentChunks" c
+                JOIN "Documents" d ON c."DocumentId" = d."Id"
+                WHERE d."Status" = 'Ready'
+                  AND c."Embedding" IS NOT NULL
+                ORDER BY c."DocumentId", c."ArticleNumber", c."Embedding" <=> '{vectorLiteral}'::vector
+            ) r
+            ORDER BY r."Score" DESC
             LIMIT {limit}
             """;
 
