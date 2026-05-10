@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, Upload, LogOut } from "lucide-react";
+import { FileText, Upload, Users, KeyRound, LogOut } from "lucide-react";
 import { logout } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Documents", icon: FileText },
   { href: "/dashboard/upload", label: "Upload", icon: Upload },
+  { href: "/dashboard/users", label: "Users", icon: Users },
+  { href: "/dashboard/settings", label: "Settings", icon: KeyRound },
 ];
 
 export function Sidebar() {

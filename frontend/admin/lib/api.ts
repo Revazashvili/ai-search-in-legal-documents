@@ -97,3 +97,51 @@ export async function deleteDocument(id: string): Promise<void> {
   const res = await apiFetch(`/api/admin/documents/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete document");
 }
+
+// ── Users ────────────────────────────────────────────────────────────────────
+
+export interface AdminUserItem {
+  id: string;
+  email: string;
+  lockoutEnd: string | null;
+}
+
+export async function getUsers(): Promise<AdminUserItem[]> {
+  const res = await apiFetch("/api/admin/users");
+  if (!res.ok) throw new Error("Failed to fetch users");
+  return res.json();
+}
+
+export async function createUser(email: string, password: string): Promise<AdminUserItem> {
+  const res = await apiFetch("/api/admin/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    const errors = data?.errors?.[""]?.join(". ") ?? "Failed to create user";
+    throw new Error(errors);
+  }
+  return res.json();
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  const res = await apiFetch(`/api/admin/users/${id}`, { method: "DELETE" });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to delete user");
+  }
+}
+
+export async function changePassword(oldPassword: string, newPassword: string): Promise<void> {
+  const res = await apiFetch("/api/admin/manage/info", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ oldPassword, newPassword }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to change password");
+  }
+}

@@ -8,6 +8,7 @@ public static class AdminEndpoints
 
         group.MapAuthAdminEndpoints();
         group.MapDocumentAdminEndpoints();
+        group.MapUserAdminEndpoints();
 
         return app;
     }
