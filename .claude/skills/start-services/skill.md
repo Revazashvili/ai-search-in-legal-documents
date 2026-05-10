@@ -1,21 +1,18 @@
 ---
-description: Start postgres (Docker), backend (.NET), and frontend (Next.js) locally
+description: Start postgres, backend, and frontend via docker compose
 ---
 
-Start all three services. Run each in the background using the Bash tool with `run_in_background: true`:
+All three services run in Docker. Start with:
 
-1. **Postgres** — `docker compose up -d` (waits for healthy before proceeding)
-2. **Backend** — `dotnet run --project backend/src/LegalDocumentAISearch.Api` from the repo root
-3. **Frontend** — `npm run dev` from `frontend/admin/`
+```bash
+docker compose up -d 2>&1
+```
 
 Steps:
-1. Run `docker compose up -d 2>&1` and wait for it to complete (it's fast).
-2. Run the backend in the background. Output file will be in /tmp.
-3. Run the frontend in the background. Output file will be in /tmp.
-4. Poll both output files every 10 seconds. Report when you see:
-   - Backend ready: `Application started` or `Now listening on`
-   - Frontend ready: `Ready in` or `Local:`
-5. If either process errors on startup, show the relevant lines.
-6. Once both are up, print:
+1. Run `docker compose up -d 2>&1` and wait for it to complete.
+2. Poll `docker compose logs backend` every 5 seconds until you see `Now listening on` or `Application started`.
+3. Poll `docker compose logs frontend` every 5 seconds until you see `Ready in` or `Local:`.
+4. If either container exits or errors, run `docker compose logs <service>` and show the relevant lines.
+5. Once both are up, print:
    - Frontend: http://localhost:3000
    - API docs: http://localhost:5081/scalar
