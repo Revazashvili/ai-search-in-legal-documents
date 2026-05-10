@@ -48,6 +48,8 @@ export interface DocumentDetail {
   dateEnacted: string | null;
   lastAmended: string | null;
   sourceUrl: string | null;
+  rawText: string;
+  filePath: string | null;
   uploadedAt: string;
   chunkCount: number;
   chunks: ChunkSummary[];
@@ -92,6 +94,10 @@ export async function uploadDocument(data: FormData): Promise<UploadResponse> {
     throw new Error(text || "Upload failed");
   }
   return res.json();
+}
+
+export function getDocumentFileUrl(id: string): string {
+  return `${API_BASE}/api/admin/documents/${id}/file`;
 }
 
 export async function deleteDocument(id: string): Promise<void> {

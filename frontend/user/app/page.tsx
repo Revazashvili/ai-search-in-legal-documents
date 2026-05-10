@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Link from "next/link";
 import { Search, Zap, Brain, MessageSquare, Loader2 } from "lucide-react";
 import {
   keywordSearch,
@@ -242,7 +243,10 @@ export default function SearchPage() {
 
 function ResultCard({ result, query }: { result: SearchResult; query: string }) {
   return (
-    <div className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
+    <Link
+      href={`/documents/${result.documentId}?chunk=${result.chunkId}&q=${encodeURIComponent(query)}`}
+      className="block bg-card border border-border rounded-lg p-4 hover:shadow-md hover:border-primary/30 transition-all"
+    >
       <div className="flex items-start justify-between mb-2">
         <div>
           <h3 className="text-sm font-semibold">{result.documentTitle}</h3>
@@ -259,7 +263,7 @@ function ResultCard({ result, query }: { result: SearchResult; query: string }) 
       <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
         <HighlightedText text={result.chunkText} query={query} />
       </p>
-    </div>
+    </Link>
   );
 }
 

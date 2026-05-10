@@ -117,7 +117,7 @@ public class DocumentServiceTests
     public async Task GetDocumentAsync_DelegatesToRepository()
     {
         var id = Guid.NewGuid();
-        var expected = new DocumentDetailDto(id, "Doc", "Law", "Contract", "FixedSize", "Ready", null, null, null, null, DateTimeOffset.UtcNow, 0, []);
+        var expected = new DocumentDetailDto(id, "Doc", "Law", "Contract", "FixedSize", "Ready", null, null, null, null, "", null, DateTimeOffset.UtcNow, 0, []);
         _documentRepository.GetDetailAsync(id, Arg.Any<CancellationToken>()).Returns(expected);
 
         var result = await _sut.GetDocumentAsync(id);

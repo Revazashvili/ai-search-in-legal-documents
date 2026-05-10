@@ -9,4 +9,5 @@ public record UploadDocumentCommand(
     string ChunkingStrategy,
     DateOnly? DateEnacted,
     DateOnly? LastAmended,
-    string? SourceUrl);
+    string? SourceUrl,
+    string? SavedFilePath = null);

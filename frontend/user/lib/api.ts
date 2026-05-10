@@ -21,6 +21,8 @@ export interface DocumentDetail {
   dateEnacted: string | null;
   lastAmended: string | null;
   sourceUrl: string | null;
+  rawText: string;
+  filePath: string | null;
   uploadedAt: string;
   chunkCount: number;
   chunks: ChunkSummary[];
@@ -79,6 +81,10 @@ export function getDocuments(page = 1, pageSize = 20) {
 
 export function getDocument(id: string) {
   return fetchApi<DocumentDetail>(`/api/documents/${id}`);
+}
+
+export function getDocumentFileUrl(id: string) {
+  return `${API_BASE}/api/documents/${id}/file`;
 }
 
 export function keywordSearch(q: string, limit = 10) {

@@ -9,6 +9,7 @@ public static class DocumentEndpoints
     {
         group.MapGet("/documents", ListDocuments).WithName("ListPublicDocuments");
         group.MapGet("/documents/{id:guid}", GetDocument).WithName("GetPublicDocument");
+        group.MapGet("/documents/{id:guid}/file", GetDocumentFile).WithName("GetPublicDocumentFile");
 
         return group;
     }
@@ -28,5 +29,19 @@ public static class DocumentEndpoints
             return Results.NotFound();
 
         return Results.Ok(document);
+    }
+
+    private static async Task<IResult> GetDocumentFile(
+        Guid id, IDocumentService documentService = default!, CancellationToken ct = default)
+    {
+        var document = await documentService.GetDocumentAsync(id, ct);
+        if (document is null || document.Status != DocumentStatus.Ready)
+            return Results.NotFound();
+
+        if (string.IsNullOrEmpty(document.FilePath) || !File.Exists(document.FilePath))
+            return Results.NotFound();
+
+        var stream = File.OpenRead(document.FilePath);
+        return Results.File(stream, "application/pdf");
     }
 }

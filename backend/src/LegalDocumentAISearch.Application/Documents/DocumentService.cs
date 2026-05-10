@@ -43,6 +43,7 @@ public class DocumentService(
             LastAmended = command.LastAmended,
             SourceUrl = command.SourceUrl,
             RawText = rawText,
+            FilePath = command.SavedFilePath,
             Status = DocumentStatus.Pending,
             UploadedAt = DateTimeOffset.UtcNow
         };

@@ -66,6 +66,8 @@ public class DocumentRepository(LegalDocumentsDbContext db) : IDocumentRepositor
                 d.DateEnacted,
                 d.LastAmended,
                 d.SourceUrl,
+                d.RawText,
+                d.FilePath,
                 d.UploadedAt,
                 d.Chunks.Count,
                 d.Chunks.OrderBy(c => c.ChunkIndex).Select(c => new ChunkSummaryDto(

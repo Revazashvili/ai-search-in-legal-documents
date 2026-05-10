@@ -13,6 +13,7 @@ public class Document
     public string ChunkingStrategy { get; set; } = string.Empty;
     public string Status { get; set; } = DocumentStatus.Pending;
     public string? ErrorMessage { get; set; }
+    public string? FilePath { get; set; }
     public DateTimeOffset UploadedAt { get; set; }
 
     public ICollection<DocumentChunk> Chunks { get; set; } = [];

@@ -24,6 +24,10 @@ public static class DocumentAdminEndpoints
             .RequireAuthorization()
             .WithName("DeleteDocument");
 
+        group.MapGet("/documents/{id:guid}/file", GetDocumentFile)
+            .RequireAuthorization()
+            .WithName("GetAdminDocumentFile");
+
         return group;
     }
 
@@ -74,9 +78,19 @@ public static class DocumentAdminEndpoints
         DateOnly? lastAmended = DateOnly.TryParse(form["lastAmended"], out var la) ? la : null;
         string? sourceUrl = string.IsNullOrWhiteSpace(form["sourceUrl"]) ? null : form["sourceUrl"].ToString();
 
-        await using var stream = file.OpenReadStream();
+        // Save PDF to disk
+        var uploadsDir = Path.Combine(AppContext.BaseDirectory, "uploads");
+        Directory.CreateDirectory(uploadsDir);
+        var savedFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+        var savedFilePath = Path.Combine(uploadsDir, savedFileName);
+        await using (var fs = new FileStream(savedFilePath, FileMode.Create))
+        {
+            await file.CopyToAsync(fs, ct);
+        }
+
+        await using var stream = File.OpenRead(savedFilePath);
         var command = new UploadDocumentCommand(stream, file.FileName, title, sourceLawName,
-            documentType, chunkingStrategy, dateEnacted, lastAmended, sourceUrl);
+            documentType, chunkingStrategy, dateEnacted, lastAmended, sourceUrl, savedFilePath);
 
         var result = await documentService.UploadDocumentAsync(command, ct);
 
@@ -96,5 +110,18 @@ public static class DocumentAdminEndpoints
     {
         var deleted = await documentService.DeleteDocumentAsync(id, ct);
         return deleted ? Results.NoContent() : Results.NotFound();
+    }
+
+    private static async Task<IResult> GetDocumentFile(Guid id, IDocumentService documentService, CancellationToken ct)
+    {
+        var document = await documentService.GetDocumentAsync(id, ct);
+        if (document is null)
+            return Results.NotFound();
+
+        if (string.IsNullOrEmpty(document.FilePath) || !File.Exists(document.FilePath))
+            return Results.NotFound();
+
+        var stream = File.OpenRead(document.FilePath);
+        return Results.File(stream, "application/pdf");
     }
 }

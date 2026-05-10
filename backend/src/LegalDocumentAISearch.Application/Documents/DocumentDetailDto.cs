@@ -11,6 +11,8 @@ public record DocumentDetailDto(
     DateOnly? DateEnacted,
     DateOnly? LastAmended,
     string? SourceUrl,
+    string RawText,
+    string? FilePath,
     DateTimeOffset UploadedAt,
     int ChunkCount,
     IReadOnlyList<ChunkSummaryDto> Chunks);

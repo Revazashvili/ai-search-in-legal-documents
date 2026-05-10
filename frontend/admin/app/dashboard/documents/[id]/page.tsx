@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Trash2, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
-import { getDocument, deleteDocument, type DocumentDetail } from "@/lib/api";
+import { getDocument, deleteDocument, getDocumentFileUrl, type DocumentDetail } from "@/lib/api";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -180,6 +180,23 @@ export default function DocumentDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* PDF viewer */}
+      {doc.filePath && (
+        <Card>
+          <CardHeader>
+            <CardTitle>PDF</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <iframe
+              src={getDocumentFileUrl(id)}
+              className="w-full rounded-b-lg"
+              style={{ height: "70vh" }}
+              title={doc.title}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Chunks table */}
       {doc.chunks.length > 0 && (

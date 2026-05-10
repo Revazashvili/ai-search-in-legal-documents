@@ -29,6 +29,8 @@ services:
       OpenAI__ChatModel: "llama3.1:8b"
       Cors__AllowedOrigins__0: "http://localhost:3000"
       Cors__AllowedOrigins__1: "http://localhost:3001"
+    volumes:
+      - uploads_data:/app/uploads
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -71,3 +73,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:
