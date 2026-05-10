@@ -15,5 +15,44 @@ services:
       timeout: 5s
       retries: 10
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5081:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=legaldocumentaisearch;Username=postgres;Password=postgres"
+      OpenAI__BaseUrl: "http://host.docker.internal:11434/v1"
+      OpenAI__EmbeddingModel: "nomic-embed-text"
+      OpenAI__ChatModel: "llama3.1:8b"
+      Cors__AllowedOrigins__0: "http://localhost:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend/admin
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:5081
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5081
+    depends_on:
+      backend:
+        condition: service_started
+
 volumes:
   postgres_data:

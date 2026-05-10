@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-### Backend (.NET 9)
+### Backend (.NET 10)
 
 ```bash
 # Build
@@ -55,7 +55,9 @@ EF migrations run automatically on backend startup via `MigrateAsync()`.
 
 ## Configuration
 
-Before running the API, set the OpenAI API key in `backend/src/LegalDocumentAISearch.Api/appsettings.json` (field `OpenAI:ApiKey`) or via environment variable `OpenAI__ApiKey`. The placeholder value `"YOUR_OPENAI_API_KEY_HERE"` will cause startup to throw.
+Default AI stack is **Ollama** (local). The API talks to `http://localhost:11434/v1` using `nomic-embed-text` (768-dim embeddings) and `llama3.1:8b` for chat. To use OpenAI instead, update `OpenAI:BaseUrl`, `OpenAI:EmbeddingModel`, and `OpenAI:ChatModel` in `appsettings.json` or via env vars.
+
+See `.env.example` at repo root for all configurable env vars.
 
 Postgres connection: `Host=localhost;Port=5432;Database=legaldocumentaisearch;Username=postgres;Password=postgres`
 
@@ -74,12 +76,13 @@ backend/
     LegalDocumentAISearch.Api             # Minimal API endpoints — thin HTTP layer
   tests/
     LegalDocumentAISearch.UnitTests       # References Application + Domain only
+    LegalDocumentAISearch.IntegrationTests # References Api + Infrastructure; uses Testcontainers
 frontend/
   admin/                                  # Next.js 16 admin portal
 docker-compose.yml                        # pgvector/pgvector:pg16
 ```
 
-Dependency direction: `Api → Infrastructure → Application → Domain`. The test project references only `Application` and `Domain`, so unit tests never touch EF Core or OpenAI.
+Dependency direction: `Api → Infrastructure → Application → Domain`. Unit tests reference only `Application` and `Domain` (no EF Core/OpenAI). Integration tests reference `Api` + `Infrastructure` and spin up Postgres via Testcontainers.
 
 ### Clean Architecture boundaries
 
@@ -93,7 +96,7 @@ Dependency direction: `Api → Infrastructure → Application → Domain`. The t
 
 **Infrastructure** — implements every Application interface:
 - `Repositories/` — `DocumentRepository` (EF + `ExecuteUpdateAsync`/`ExecuteDeleteAsync`), `SearchRepository` (raw SQL for tsvector and pgvector)
-- `Services/` — `EmbeddingService` (batched, 100/call), `ChunkingService` (three strategies), `PdfTextExtractor`, `RagChatService` (builds prompt, streams GPT-4o)
+- `Services/` — `EmbeddingService` (batched, 100/call), `ChunkingService` (three strategies), `PdfTextExtractor`, `RagChatService` (builds prompt, streams via Ollama/OpenAI chat model)
 - `Background/` — `IngestionBackgroundService` consumes `IIngestionQueue` (a `Channel<Guid>`) and calls `IIngestionService` in a scoped DI scope
 
 **API** — minimal API endpoints, no business logic:
@@ -107,7 +110,7 @@ Dependency direction: `Api → Infrastructure → Application → Domain`. The t
 Upload (sync) → `IIngestionQueue.Enqueue(id)` → `IngestionBackgroundService` dequeues → `IngestionService.IngestAsync`:
 1. Chunk via `IChunkingService` (FixedSize / ArticleLevel / Hierarchical)
 2. For Hierarchical: embed only `Paragraph`-type child chunks, not article parents
-3. Batch embed via `IEmbeddingService` (OpenAI `text-embedding-3-small`, 1536-dim)
+3. Batch embed via `IEmbeddingService` (default: `nomic-embed-text` via Ollama, 768-dim)
 4. Bulk insert via `IDocumentRepository.AddChunksAsync`
 5. Set status → `Ready` (or `Failed` with error message)
 
@@ -117,7 +120,7 @@ Client polls `GET /api/admin/documents/{id}` to observe status transitions: `Pen
 
 PostgreSQL 16 with pgvector. Key schema details:
 - `Documents."TsVector"` — database-managed `tsvector` column updated by a trigger on `RawText` changes; used for keyword search via `to_tsvector('simple', ...)` (Georgian text — no stemming)
-- `DocumentChunks."Embedding"` — `vector(1536)` with HNSW index (`vector_cosine_ops`); `<=>` operator = cosine distance
+- `DocumentChunks."Embedding"` — `vector(768)` with HNSW index (`vector_cosine_ops`); `<=>` operator = cosine distance
 - Chunk hierarchy: `DocumentChunks."ParentChunkId"` self-references for Hierarchical strategy; paragraph chunks carry embeddings, article parents carry full text
 - Identity tables live in the `admin` schema
 
