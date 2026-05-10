@@ -8,8 +8,8 @@ public class DocumentService(
     IPdfTextExtractor pdfTextExtractor,
     IIngestionQueue ingestionQueue) : IDocumentService
 {
-    public Task<List<DocumentListItemDto>> ListDocumentsAsync(CancellationToken ct = default) =>
-        documentRepository.ListAsync(ct);
+    public Task<PagedResult<DocumentListItemDto>> ListDocumentsAsync(int page = 1, int pageSize = 20, CancellationToken ct = default) =>
+        documentRepository.ListAsync(page, pageSize, ct);
 
     public Task<DocumentDetailDto?> GetDocumentAsync(Guid id, CancellationToken ct = default) =>
         documentRepository.GetDetailAsync(id, ct);

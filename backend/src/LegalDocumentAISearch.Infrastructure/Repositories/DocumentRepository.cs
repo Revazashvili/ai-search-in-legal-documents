@@ -8,9 +8,14 @@ namespace LegalDocumentAISearch.Infrastructure.Repositories;
 
 public class DocumentRepository(LegalDocumentsDbContext db) : IDocumentRepository
 {
-    public Task<List<DocumentListItemDto>> ListAsync(CancellationToken ct = default) =>
-        db.Documents
-            .OrderByDescending(d => d.UploadedAt)
+    public async Task<PagedResult<DocumentListItemDto>> ListAsync(int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = db.Documents.OrderByDescending(d => d.UploadedAt);
+
+        var totalCount = await query.CountAsync(ct);
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(d => new DocumentListItemDto(
                 d.Id,
                 d.Title,
@@ -20,6 +25,9 @@ public class DocumentRepository(LegalDocumentsDbContext db) : IDocumentRepositor
                 d.Chunks.Count,
                 d.UploadedAt))
             .ToListAsync(ct);
+
+        return new PagedResult<DocumentListItemDto>(items, totalCount, page, pageSize);
+    }
 
     public async Task<DocumentDetailDto?> GetDetailAsync(Guid id, CancellationToken ct = default) =>
         await db.Documents

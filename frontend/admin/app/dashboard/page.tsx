@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, Trash2, RefreshCw } from "lucide-react";
+import { Plus, Trash2, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   getDocuments,
   deleteDocument,
   type DocumentListItem,
+  type PagedResult,
 } from "@/lib/api";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,17 +17,19 @@ import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [documents, setDocuments] = useState<DocumentListItem[]>([]);
+  const [result, setResult] = useState<PagedResult<DocumentListItem> | null>(null);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const documents = result?.items ?? [];
   const hasActive = documents.some(
     (d) => d.status === "Pending" || d.status === "Processing"
   );
 
-  async function fetchDocuments() {
+  async function fetchDocuments(p = page) {
     try {
-      setDocuments(await getDocuments());
+      setResult(await getDocuments(p));
     } catch {
       setError("Failed to load documents.");
     } finally {
@@ -35,22 +38,22 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    fetchDocuments();
-  }, []);
+    fetchDocuments(page);
+  }, [page]);
 
   // Auto-poll while any document is being ingested
   useEffect(() => {
     if (!hasActive) return;
-    const id = setInterval(fetchDocuments, 3000);
+    const id = setInterval(() => fetchDocuments(page), 3000);
     return () => clearInterval(id);
-  }, [hasActive]);
+  }, [hasActive, page]);
 
   async function handleDelete(docId: string, e: React.MouseEvent) {
     e.stopPropagation();
     if (!confirm("Delete this document and all its chunks?")) return;
     try {
       await deleteDocument(docId);
-      setDocuments((prev) => prev.filter((d) => d.id !== docId));
+      fetchDocuments(page);
     } catch {
       setError("Failed to delete document.");
     }
@@ -63,7 +66,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-xl font-semibold">Documents</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {documents.length} document{documents.length !== 1 ? "s" : ""}
+            {result?.totalCount ?? 0} document{(result?.totalCount ?? 0) !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -160,6 +163,35 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination controls */}
+      {result && result.totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            Page {result.page} of {result.totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!result.hasPreviousPage}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <ChevronLeft size={14} />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!result.hasNextPage}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+              <ChevronRight size={14} />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

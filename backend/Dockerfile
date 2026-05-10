@@ -8,6 +8,7 @@ COPY src/LegalDocumentAISearch.Application/LegalDocumentAISearch.Application.csp
 COPY src/LegalDocumentAISearch.Infrastructure/LegalDocumentAISearch.Infrastructure.csproj src/LegalDocumentAISearch.Infrastructure/
 COPY src/LegalDocumentAISearch.Api/LegalDocumentAISearch.Api.csproj                       src/LegalDocumentAISearch.Api/
 COPY tests/LegalDocumentAISearch.UnitTests/LegalDocumentAISearch.UnitTests.csproj         tests/LegalDocumentAISearch.UnitTests/
+COPY tests/LegalDocumentAISearch.IntegrationTests/LegalDocumentAISearch.IntegrationTests.csproj tests/LegalDocumentAISearch.IntegrationTests/
 
 RUN --mount=type=cache,target=/root/.nuget/packages dotnet restore
 

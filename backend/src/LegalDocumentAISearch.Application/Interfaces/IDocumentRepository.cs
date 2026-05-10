@@ -5,7 +5,7 @@ namespace LegalDocumentAISearch.Application.Interfaces;
 
 public interface IDocumentRepository
 {
-    Task<List<DocumentListItemDto>> ListAsync(CancellationToken ct = default);
+    Task<PagedResult<DocumentListItemDto>> ListAsync(int page, int pageSize, CancellationToken ct = default);
     Task<DocumentDetailDto?> GetDetailAsync(Guid id, CancellationToken ct = default);
     /// <summary>Returns the full entity including RawText — used by the ingestion pipeline.</summary>
     Task<Document?> FindByIdAsync(Guid id, CancellationToken ct = default);

@@ -65,6 +65,9 @@ public static class DependencyInjection
         // Background worker
         services.AddHostedService<IngestionBackgroundService>();
 
+        // Validate AI endpoint connectivity on startup
+        services.AddHostedService<AiConfigValidationService>();
+
         return services;
     }
 }

@@ -101,11 +101,12 @@ public class DocumentServiceTests
     [Fact]
     public async Task ListDocumentsAsync_DelegatesToRepository()
     {
-        var expected = new List<DocumentListItemDto>
+        var items = new List<DocumentListItemDto>
         {
             new(Guid.NewGuid(), "Doc1", "Contract", "FixedSize", "Ready", 5, DateTimeOffset.UtcNow)
         };
-        _documentRepository.ListAsync(Arg.Any<CancellationToken>()).Returns(expected);
+        var expected = new PagedResult<DocumentListItemDto>(items, 1, 1, 20);
+        _documentRepository.ListAsync(1, 20, Arg.Any<CancellationToken>()).Returns(expected);
 
         var result = await _sut.ListDocumentsAsync();
 

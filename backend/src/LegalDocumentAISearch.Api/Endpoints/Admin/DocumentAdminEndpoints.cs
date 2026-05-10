@@ -27,8 +27,8 @@ public static class DocumentAdminEndpoints
         return group;
     }
 
-    private static async Task<IResult> ListDocuments(IDocumentService documentService, CancellationToken ct) =>
-        Results.Ok(await documentService.ListDocumentsAsync(ct));
+    private static async Task<IResult> ListDocuments(int? page, int? pageSize, IDocumentService documentService, CancellationToken ct) =>
+        Results.Ok(await documentService.ListDocumentsAsync(page ?? 1, pageSize ?? 20, ct));
 
     private static async Task<IResult> GetDocument(Guid id, IDocumentService documentService, CancellationToken ct)
     {
@@ -43,7 +43,12 @@ public static class DocumentAdminEndpoints
 
         var form = await request.ReadFormAsync(ct);
 
+        const long maxFileSize = 50 * 1024 * 1024; // 50 MB
+
         var file = form.Files["file"];
+        if (file is not null && file.Length > maxFileSize)
+            return Results.BadRequest($"File exceeds maximum size of 50 MB.");
+
         var title = form["title"].ToString();
         var sourceLawName = form["sourceLawName"].ToString();
         var documentType = form["documentType"].ToString();

@@ -58,10 +58,22 @@ export interface UploadResponse {
   status: string;
 }
 
+// ── Pagination ───────────────────────────────────────────────────────────────
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 // ── Documents ─────────────────────────────────────────────────────────────────
 
-export async function getDocuments(): Promise<DocumentListItem[]> {
-  const res = await apiFetch("/api/admin/documents");
+export async function getDocuments(page = 1, pageSize = 20): Promise<PagedResult<DocumentListItem>> {
+  const res = await apiFetch(`/api/admin/documents?page=${page}&pageSize=${pageSize}`);
   if (!res.ok) throw new Error("Failed to fetch documents");
   return res.json();
 }

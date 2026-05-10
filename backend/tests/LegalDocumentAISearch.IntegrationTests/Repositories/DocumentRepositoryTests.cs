@@ -58,10 +58,10 @@ public class DocumentRepositoryTests : IClassFixture<IntegrationTestFixture>
         await repo.CreateAsync(doc1);
         await repo.CreateAsync(doc2);
 
-        var list = await repo.ListAsync();
+        var result = await repo.ListAsync(1, 20);
 
         // Most recently uploaded should come first
-        var titles = list.Select(d => d.Title).ToList();
+        var titles = result.Items.Select(d => d.Title).ToList();
         var indexB = titles.IndexOf("List Doc B");
         var indexA = titles.IndexOf("List Doc A");
         Assert.True(indexB < indexA || (indexB >= 0 && indexA >= 0),
