@@ -7,6 +7,7 @@ public static class UserEndpoints
         var group = app.MapGroup("/api");
 
         group.MapSearchEndpoints();
+        group.MapDocumentEndpoints();
 
         return app;
     }

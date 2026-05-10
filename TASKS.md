@@ -1,95 +1,83 @@
 # Project Tasks
 
-Current state: backend on .NET 10, admin portal complete, 86 tests passing, full docker-compose stack. Core gap is the public-facing search UI — endpoints exist but no frontend. Tasks are ordered by priority.
+Current state: backend on .NET 10, admin portal complete, 86 tests passing, full docker-compose stack.
 
 ---
 
-## 1. Public Search UI (Frontend)
+## Public Search UI — Development Plan
 
-**Missing entirely.** The three search endpoints exist (`/api/search/keyword`, `/api/search/semantic`, `/api/search/rag`) but there is no user-facing interface to use them.
+Separate Next.js app at `frontend/user/`, port 3001, Georgian-only, desktop, light theme, fully public (no auth).
 
-### 1.1 Search Page — Keyword & Semantic
-- New route: `/search` (public, no auth)
-- Search input with mode toggle (Keyword / Semantic / RAG)
-- Results list: document title, article number, chunk text excerpt, similarity score badge
-- Latency display (ms)
-- Loading state while fetching
-- Empty state when no results
+### Phase 1: Backend — Public Document Endpoints
 
-### 1.2 RAG Search Page / Component
-- Streaming SSE response rendered token-by-token
-- Source citations displayed after streaming completes (`done: true, sources: [...]`)
-- Stop/cancel button mid-stream
-- Error state if stream fails
+- [x] **1.1** Add `GET /api/documents` — paginated list of **Ready** documents (title, chunk count, id, uploadedAt). Public, no auth.
+- [x] **1.2** Add `GET /api/documents/{id}` — document metadata (title, source law, dates, chunk count). Ready only.
+- [ ] ~~**1.3** Add `GET /api/documents/{id}/file` — deferred, no file storage yet.~~
+- [x] **1.4** Add CORS origin `http://localhost:3001` to appsettings + docker-compose env.
+- [x] **1.5** Wire new endpoints into `UserEndpoints.cs` under `/api` group.
 
-### 1.3 Frontend Routing
-- Decide: separate `/search` page or tabs on dashboard
-- Public routes must not require auth (no auth guard)
-- Shared layout/navigation between admin and public areas, or separate shells
+### Phase 2: Frontend — Project Scaffolding
 
----
+- [x] **2.1** Init Next.js 16 project at `frontend/user/` (React 19, TypeScript, Tailwind CSS 4).
+- [x] **2.2** Set up `globals.css`, base layout, Georgian font support.
+- [x] **2.3** Create API client (`lib/api.ts`) — `NEXT_PUBLIC_API_URL` default `http://localhost:5081`.
+- [x] **2.4** Add `Dockerfile` (mirror admin pattern).
+- [x] **2.5** Add `CLAUDE.md` / `AGENTS.md` with Next.js 16 warning.
 
-## 2. Testing Gaps
+### Phase 3: Frontend — Layout & Navigation
 
-### 2.1 E2E Tests (Playwright)
-- No end-to-end tests for the frontend
-- Add Playwright to `frontend/admin`
-- Cover: login flow, document upload, status polling, document detail, delete
-- Cover: public search (once built)
-- Run in CI alongside unit/integration tests
+- [x] **3.1** Root layout — light theme, clean header with app title + nav links.
+- [x] **3.2** Two pages: **ძიება** (Search, home `/`) and **დოკუმენტები** (Documents, `/documents`).
+- [x] **3.3** Desktop-only styling.
 
-### 2.2 Expanded Integration Tests
-- Search repository: test with real Georgian text (`მუხლი`)
-- Search repository: test empty result sets
-- Search repository: test limit/offset behavior (once pagination is added)
-- Upload endpoint: test with a real small PDF fixture
-- RAG endpoint: verify SSE event format matches frontend expectations
+### Phase 4: Frontend — Documents Page
 
-### 2.3 Performance / Load Tests
-- Ingestion pipeline: test with a large document (10k+ tokens) to verify chunking correctness
-- Semantic search: test latency with 1000+ chunks in DB
-- Consider `k6` or `NBomber` for load testing search endpoints
+- [x] **4.1** `/documents` page — paginated table of documents.
+- [x] **4.2** Columns: სათაური (Title), ნაწილები (Chunks), მოქმედებები (Actions).
+- [x] **4.3** Actions: eye button → preview modal, link button → document detail/PDF.
+- [x] **4.4** Document preview modal — metadata (title, source law, dates, status).
+- [x] **4.5** Pagination controls.
 
----
+### Phase 5: Frontend — Search Page
 
-## 3. Observability
+- [x] **5.1** Search page (`/`) — input + mode switcher.
+- [x] **5.2** Three modes via tabs: **საკვანძო სიტყვა** (Keyword), **სემანტიკური** (Semantic), **RAG**.
+- [x] **5.3** Keyword & Semantic results: cards with document title, article number, chunk text with highlight, score.
+- [x] **5.4** RAG mode: streaming toggle, AI answer area with token-by-token render, source articles below.
+- [x] **5.5** Result cards: "გახსნა" button → open PDF in new tab.
+- [x] **5.6** Loading/empty/error states (Georgian text).
 
-### 3.1 Structured Logging
-- Application uses `ILogger<T>` throughout but logs go to console only
-- Add `Serilog` with file sink + structured JSON output
-- Log key events: document upload, ingestion start/complete/fail, search queries
+### Phase 6: Docker Integration
 
-### 3.2 Search Analytics
-- No record of what users search for
-- Optionally log search queries + result counts + latency to a DB table or log sink
-- Useful for improving the system and understanding usage patterns
+- [x] **6.1** Add `user-frontend` service to `docker-compose.yml` — port 3001, depends on backend.
+- [x] **6.2** Update start/stop skills if needed.
 
-### 3.3 Failed Ingestion Alerting
-- When `Status = "Failed"`, currently no notification
-- Consider a simple admin dashboard widget showing recent failures
-- Or email notification via SMTP when ingestion fails
+### Phase 7: Polish
+
+- [x] **7.1** Search highlight — bold/yellow matched terms in chunks.
+- [x] **7.2** Latency display — "მოიძებნა X შედეგი, Y მწ".
+- [x] **7.3** SSE streaming UX — typing animation, auto-scroll.
+- [x] **7.4** Georgian typography consistency.
 
 ---
 
-## 4. Minor / Polish
+**~24 tasks, 7 phases.** Phases 1 & 2 parallelizable. Phase 6 after Phase 2. Rest sequential.
 
-### 4.1 Frontend: Loading Skeletons
-- Dashboard shows plain "Loading…" text while fetching
-- Replace with skeleton loaders for better UX
+---
 
-### 4.2 Frontend: Error Boundaries
-- Unhandled React errors crash the page
-- Add a top-level error boundary in the dashboard layout
+## Other Tasks (Lower Priority)
 
-### 4.3 Frontend: Logout State Cleanup
-- Sidebar logout calls `logout()` then redirects, but stale state could remain if redirect fails
-- Clear local state explicitly before redirect
+### Testing Gaps
+- E2E tests (Playwright) for both frontends
+- Expanded integration tests (Georgian text, SSE format, large PDFs)
+- Performance/load tests (k6 or NBomber)
 
-### 4.4 Embedding Dimension Validation
-- `EmbeddingService` batches calls and returns `float[][]`
-- No assertion that returned vectors match expected 768 dimensions
-- Add a guard: `if (embedding.Length != 768) throw ...` to catch model mismatches early
+### Observability
+- Structured logging (Serilog)
+- Search analytics (query logging)
+- Failed ingestion alerting
 
-### 4.5 Configurable Chunking Parameters
-- `FixedWindowTokens = 500`, `FixedOverlapTokens = 50`, `ArticleMaxTokens = 800` are hardcoded constants
-- Move to `appsettings.json` under `Chunking:*` for easier tuning without recompile
+### Polish (Admin)
+- Loading skeletons, error boundaries, logout cleanup
+- Embedding dimension validation
+- Configurable chunking parameters

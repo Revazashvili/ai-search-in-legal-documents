@@ -28,6 +28,7 @@ services:
       OpenAI__EmbeddingModel: "nomic-embed-text"
       OpenAI__ChatModel: "llama3.1:8b"
       Cors__AllowedOrigins__0: "http://localhost:3000"
+      Cors__AllowedOrigins__1: "http://localhost:3001"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -48,6 +49,20 @@ services:
         NEXT_PUBLIC_API_URL: http://localhost:5081
     ports:
       - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5081
+    depends_on:
+      backend:
+        condition: service_started
+
+  user-frontend:
+    build:
+      context: ./frontend/user
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:5081
+    ports:
+      - "3001:3001"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:5081
     depends_on:

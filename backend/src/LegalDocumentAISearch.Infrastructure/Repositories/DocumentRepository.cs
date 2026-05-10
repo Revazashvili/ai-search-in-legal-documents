@@ -29,6 +29,29 @@ public class DocumentRepository(LegalDocumentsDbContext db) : IDocumentRepositor
         return new PagedResult<DocumentListItemDto>(items, totalCount, page, pageSize);
     }
 
+    public async Task<PagedResult<DocumentListItemDto>> ListByStatusAsync(string status, int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = db.Documents
+            .Where(d => d.Status == status)
+            .OrderByDescending(d => d.UploadedAt);
+
+        var totalCount = await query.CountAsync(ct);
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(d => new DocumentListItemDto(
+                d.Id,
+                d.Title,
+                d.DocumentType,
+                d.ChunkingStrategy,
+                d.Status,
+                d.Chunks.Count,
+                d.UploadedAt))
+            .ToListAsync(ct);
+
+        return new PagedResult<DocumentListItemDto>(items, totalCount, page, pageSize);
+    }
+
     public async Task<DocumentDetailDto?> GetDetailAsync(Guid id, CancellationToken ct = default) =>
         await db.Documents
             .Where(d => d.Id == id)
